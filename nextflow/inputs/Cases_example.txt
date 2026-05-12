@@ -1,0 +1,9 @@
+VCF ID	Gender	CASE TYPE	HPO
+FAM001_S01	m	TRIO	HP:0001250 - Seizure, HP:0001263 - Global developmental delay, HP:0000252 - Microcephaly
+FAM002_S01	f	TRIO	HP:0001263 - Global developmental delay, HP:0000750 - Delayed speech and language development, HP:0001508 - Failure to thrive
+FAM003_S01	m	DUO	HP:0001252 - Hypotonia, HP:0001270 - Motor delay, HP:0000316 - Hypertelorism
+FAM004_S01	f	QUADA	HP:0001518 - Small for gestational age, HP:0001263 - Global developmental delay, HP:0011968 - Feeding difficulties
+FAM005_S01	m	SINGLETON	HP:0001249 - Intellectual disability, HP:0001250 - Seizure, HP:0001263 - Global developmental delay
+FAM006_S01	f	TRIO	HP:0000256 - Macrocephaly, HP:0001382 - Joint hypermobility, HP:0001263 - Global developmental delay
+FAM007_S01	m	TRIO	HP:0001249 - Intellectual disability, HP:0008947 - Infantile muscular hypotonia, HP:0000316 - Hypertelorism, HP:0000369 - Low-set ears
+FAM008_S01	f	SINGLETON	HP:0001508 - Failure to thrive, HP:0001270 - Motor delay, HP:0000252 - Microcephaly

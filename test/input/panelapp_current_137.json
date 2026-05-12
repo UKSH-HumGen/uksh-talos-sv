@@ -1,0 +1,71 @@
+[
+    {
+      "gene_data": {
+        "ensembl_genes": {
+          "GRch38": {
+            "90": {
+              "ensembl_id": "ENSG00ABCD",
+              "location": "1:"
+            }
+          }
+        }
+      },
+      "entity_type": "gene",
+      "entity_name": "ABCD",
+      "mode_of_inheritance": "Biallelic"
+    },
+    {
+      "gene_data": {
+        "ensembl_genes": {
+          "GRch38": {
+            "90": {
+              "ensembl_id": "ENSG00EFGH",
+              "location": "1:"
+            }
+          }
+        }
+      },
+      "entity_type": "gene",
+      "entity_name": "EFGH",
+      "mode_of_inheritance": "Monoallelic"
+    },
+    {
+      "gene_data": {
+        "ensembl_genes": {
+          "GRch38": {
+            "90": {
+              "ensembl_id": "ENSG00IJKL",
+              "location": "1:"
+            }
+          }
+        }
+      },
+      "entity_type": "gene",
+      "entity_name": "IJKL",
+      "mode_of_inheritance": "BOTH"
+    },
+    {
+      "gene_data": {
+        "ensembl_genes": {
+        }
+      },
+      "entity_type": "gene",
+      "entity_name": "RNU12",
+      "mode_of_inheritance": "SPECIFIC"
+    },
+    {
+      "gene_data": {
+        "ensembl_genes": {
+          "GRch38": {
+            "90": {
+              "ensembl_id": "ENSG00SKIP",
+              "location": "1:"
+            }
+          }
+        }
+      },
+      "entity_type": "not_gene",
+      "entity_name": "SKIP",
+      "mode_of_inheritance": "Mystery"
+    }
+]

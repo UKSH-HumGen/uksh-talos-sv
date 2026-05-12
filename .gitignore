@@ -1,0 +1,113 @@
+# Nextflow work directories
+work/
+.nextflow/
+.nextflow.*
+
+# Large data files
+*.vcf
+*.vcf.gz
+*.vcf.bgz
+*.bcf
+*.bam
+*.cram
+*.tbi
+*.csi
+*.bai
+
+# Output directories
+*_outputs/
+cohort_outputs/
+processed_annotations/
+
+# Large reference files
+large_files/
+*.fa
+*.fasta
+*.fa.gz
+*.fasta.gz
+*.gff3
+*.gff3.gz
+*.db
+*.zip
+
+# VCF input data
+inputs/individual_vcfs/*.vcf.gz
+inputs/individual_vcfs/*.vcf.bgz
+inputs/individual_vcfs/*.tbi
+
+# Hail/Spark files
+*.ht/
+*.mt/
+*.log
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep small config/input files
+# NOTE: real patient .ped files MUST stay out of the repo.
+# Only the synthetic example pedigree (and example Cases sheet) are whitelisted.
+!inputs/pedigree_synthetic_example.ped
+!inputs/Cases_example.txt
+!inputs/*.toml
+!inputs/config.toml
+
+# Keep documentation
+!*.md
+!README*
+
+# Additional Nextflow patterns
+.nextflow.work/
+.nextflow.work.*/
+.nextflow.trace
+*.trace.txt
+*.timeline.*
+*.report.*
+work/
+results/
+outputs/
+
+# Data files
+*.vcf
+*.vcf.gz
+*.bam
+*.bai
+*.cram
+*.crai
+*.bed
+*.bed.gz
+*.tsv
+*.tsv.gz
+*.csv
+*.csv.gz
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local configuration files
+config/local/*
+!config/local/.gitkeep
+
+# Logs
+logs/
+*.log

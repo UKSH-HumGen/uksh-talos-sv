@@ -1,0 +1,55 @@
+name: Docker
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to use (defaults to "test")'
+        default: "test"
+
+permissions:
+  contents: read
+
+env:
+  VERSION: 1.0.0-uksh
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    env:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+      IMAGE_NAME: uksh-talos-sv
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build (sanity check, no push)
+        run: |
+          docker build . --tag $IMAGE_NAME:${{ github.sha }}
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:$VERSION
+
+      # TODO Daniel: configure your own registry push here (e.g., GHCR) if you
+      # want pre-built images. The block below is left commented out as a
+      # template — you will need to add a repository secret with a token that
+      # has `write:packages` scope, e.g. via `secrets.GHCR_TOKEN`.
+      #
+      # - name: login to GHCR
+      #   if: ${{ github.ref_name == 'main' }}
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GHCR_TOKEN }}
+      #
+      # - name: push main branch build
+      #   if: ${{ github.ref_name == 'main' }}
+      #   run: |
+      #     docker tag $IMAGE_NAME:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$VERSION
+      #     docker push ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$VERSION

@@ -1,0 +1,192 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name='uksh-talos-sv'
+description='Fork of Talos with structural variant support, used in Kaschta et al. preprint on automated rare disease reanalysis'
+readme = "README.md"
+version="1.0.0+uksh"
+requires-python = ">=3.10"
+license-files = ["LICENSE"]
+# UKSH fork maintainer
+authors = [
+    {name = "Daniel Kaschta", email = "kaschta.daniel@gmail.com"},
+]
+# Upstream Talos was developed at the Centre for Population Genomics; the
+# original maintainers retain authorship of the bulk of the code base.
+maintainers = [
+    {name = "Daniel Kaschta", email = "kaschta.daniel@gmail.com"},
+]
+classifiers=[
+    'Environment :: Console',
+    'Intended Audience :: Science/Research',
+    'Natural Language :: English',
+    'Operating System :: Unix',
+    'Programming Language :: Python',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Bio-Informatics',
+]
+
+dependencies=[
+    'hail==0.2.134',
+    'cloudpathlib[all]>=0.16.0',
+    'cyvcf2>=0.30.18',
+    'grpcio-status>=1.48,<1.50',
+    'hatchling>=1.27.0',
+    'httpx>=0.27.0',
+    'Jinja2>=3.1.3',
+    'loguru>=0.7.3',
+    'networkx>=3',
+    'obonet>=1',
+    'pendulum>=3.1.0',
+    'pydantic>=2.5.2',
+    'pysam>=0.22.0',
+    'python-dateutil>=2',
+    'semsimian',
+    'tabulate>=0.8.9',
+    'tenacity>=9.0.0',
+    'toml==0.10.2',
+]
+
+[project.optional-dependencies]
+# Upstream Talos shipped with cpg-utils as a hard requirement, used for
+# Hail/Batch initialisation against Google Cloud. In this fork the helper is
+# stubbed out when missing, so cpg-utils only needs to be installed if you
+# plan to run the annotation scripts against CPG/Google-Cloud infrastructure.
+cpg = [
+    'cpg-utils>=5.4.1',
+]
+test = [
+    'bump-my-version',
+    'pre-commit',
+    'pytest',
+    'pytest-httpx',
+    'pytest-xdist>=3.6.0',
+]
+
+[project.urls]
+# TODO Daniel: replace placeholder with actual repository URL once published.
+Repository = "https://github.com/UKSH-HumGen/uksh-talos-sv"
+Upstream = "https://github.com/populationgenomics/talos"
+
+[project.scripts]
+# ----------------------------------------------------------------------------------------
+# these scripts are used during the annotation & data formatting pre-workflow
+# ----------------------------------------------------------------------------------------
+# Parse an Ensembl GFF3 file, output a BED file of gene regions
+CreateRoiFromGff3 = 'talos.annotation_scripts.CreateRoiFromGff3:cli_main'
+# Parse AlphaMissense into Hail Table
+ParseAlphaMissenseIntoHt = 'talos.annotation_scripts.ParseAlphaMissenseIntoHt:cli_main'
+# Parse MANE summary file into JSON
+ParseManeIntoJson = 'talos.annotation_scripts.ParseManeIntoJson:cli_main'
+# Reformats an annotated sites-only VCF into Table, adding additional annotations
+ReformatAnnotatedVcfIntoHailTable = 'talos.annotation_scripts.ReformatAnnotatedVcfIntoHailTable:cli_main'
+# Combines the annotations and the VCF into a MatrixTable
+TransferAnnotationsToMatrixTable = 'talos.annotation_scripts.TransferAnnotationsToMatrixTable:cli_main'
+
+# ----------------------------------------------------------------------------------------
+# Aggregator (used in some Talos deployments to combine Exomiser TSVs)
+# ----------------------------------------------------------------------------------------
+AggregateExomiserVariantTsvs = 'talos.AggregateExomiserVariantTsvs:cli_main'
+
+# ----------------------------------------------------------------------------------------
+# these scripts are part of the core Talos workflow
+# ----------------------------------------------------------------------------------------
+# turns the SVDB TSV into a Hail Table
+ConvertSpliceVarDb = 'talos.ConvertSpliceVarDb:cli_main'
+# Download and format all current PanelApp data
+DownloadPanelApp = 'talos.DownloadPanelApp:cli_main'
+# Parse the Downloaded PanelApp data, generating a run-specific PanelApp subset
+UnifiedPanelAppParser = 'talos.UnifiedPanelAppParser:cli_main'
+# Filter and label a small-variant MatrixTable
+RunHailFiltering = 'talos.RunHailFiltering:cli_main'
+# Filter and label a SV MatrixTable
+RunHailFilteringSV = 'talos.RunHailFilteringSv:cli_main'
+# Categorize structural variants based on gene/exon overlap (UKSH fork addition)
+CategorizeSVs = 'talos.CategorizeSVs:cli_main'
+# Run each of the category-labelled variants through MOI filters
+ValidateMOI = 'talos.ValidateMOI:cli_main'
+# catch variants which have strong phenotypic matches
+HPOFlagging = 'talos.HPOFlagging:cli_main'
+# Generate a HTML file from the report summary
+CreateTalosHTML = 'talos.CreateTalosHTML:cli_main'
+# Generate a brief summary of an existing report (variant count, family size, etc.)
+SummariseReport = 'talos.SummariseReport:cli_main'
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talos"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[options]
+include_package_data = true
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ['test']
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["venv", ".mypy_cache", ".venv", "build", "dist", "experimental"]
+
+[tool.ruff.lint]
+# ignore pydocstyle, flake8-boolean-trap (FBT)
+select = ["A", "B", "C", "E", "F", "G", "I", "N", "Q", "S", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "ERA", "EXE", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "UP", "YTT"]
+
+fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "ERA", "EXE", "FBT", "ICN", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "UP", "YTT"]
+
+ignore = [
+    "ANN001", # Missing type annotation for function argument
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for `cls` in classmethod
+    "ANN201", # Missing return type annotation for public function
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "ANN204", # Missing type annotation for special method `__init__`
+    "E731", # Do not assign a lambda expression, use a def
+    "G004", # Logging statement uses f-string
+    "PLW0603", # Using the global statement to update `<VAR>` is discouraged
+    "Q000", # Single quotes found but double quotes preferred
+    "S101", # Use of assert detected
+    "PLR0912", # Too many branches (> 12)
+    "PLR0913", # Too many arguments in function (> 5)
+    "C901", # method is too complex (> 10 conditions)
+    "N999", # invalid module name (not lower-case and potholes)
+    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "PLR2004" #  Magic value used in comparison, consider replacing `X` with a constant variable. I don't rate this
+]
+
+[tool.ruff.format]
+indent-style = 'space'
+quote-style = "single"
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "hail", "cpg", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+cpg = ["metamist", "talos", "cpg-flow", "cpg-utils"]
+hail = ["hail"]
+
+[tool.bumpversion]
+# Note: bump-my-version is preserved for upstream parity but the UKSH fork
+# uses a "X.Y.Z-uksh" tag scheme that is not strictly SemVer. Bumping is
+# manual for the time being.
+current_version = "1.0.0+uksh"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\+(?P<release>[a-z]+))?"
+serialize = ["{major}.{minor}.{patch}+{release}", "{major}.{minor}.{patch}"]
+commit = false
+message = "Bump version: {current_version} -> {new_version}"
+commit_args = ""
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version="{current_version}"'
+replace = 'version="{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "src/talos/version.py"
+search = "{current_version}"
+replace = "{new_version}"

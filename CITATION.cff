@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+# This CITATION file describes how to cite the UKSH Talos-SV fork. The
+# upstream Talos software should be cited separately:
+#   Centre for Population Genomics, Talos. https://github.com/populationgenomics/talos
+message: "If you use this software, please cite it using the metadata below."
+title: "uksh-talos-sv"
+abstract: >
+  Fork of the Centre for Population Genomics' Talos variant prioritisation
+  framework, extended with structural variant (SV) support, GFF3-based gene
+  and exon annotation for SVs, genotype-based multi-sample SV assignment,
+  MOI validation for SVs, and a DRAGEN CNV display fix. Used in the
+  Kaschta et al. preprint on automated rare disease reanalysis at UKSH.
+type: software
+authors:
+  - family-names: Kaschta
+    given-names: Daniel
+    email: kaschta.daniel@gmail.com
+    affiliation: "Universitätsklinikum Schleswig-Holstein (UKSH)"
+    orcid: "https://orcid.org/0009-0004-8128-5024"
+version: "1.0.0-uksh"
+date-released: "2026-05-11"
+# TODO Daniel: replace the placeholder DOI below with the real Zenodo DOI
+# issued when the GitHub release is published. See the README section
+# "Citing this fork" for the exact steps.
+doi: "10.XXXX/PLACEHOLDER-PREPRINT-DOI"
+# TODO Daniel: replace placeholder with actual repository URL once published.
+repository-code: "https://github.com/UKSH-HumGen/uksh-talos-sv"
+license: "MIT"
+keywords:
+  - bioinformatics
+  - rare-disease
+  - variant-prioritisation
+  - structural-variants
+  - reanalysis
+  - hail
+preferred-citation:
+  type: article
+  title: >
+    Automated re-analysis of unsolved rare disease cases using structural
+    variant-aware Talos at UKSH
+  authors:
+    - family-names: Kaschta
+      given-names: Daniel
+  year: 2026
+  # TODO Daniel: replace with the actual medRxiv preprint DOI once posted.
+  doi: "10.XXXX/PLACEHOLDER-PREPRINT-DOI"

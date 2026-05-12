@@ -1,0 +1,6 @@
+# Generated VCF fixtures (binary + index files).
+# Run test/input/create_test_fixtures.py to regenerate.
+1_labelled_variant.vcf.bgz
+1_labelled_variant.vcf.bgz.tbi
+newphase.vcf.bgz
+newphase.vcf.bgz.tbi
