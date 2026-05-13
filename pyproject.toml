@@ -126,9 +126,6 @@ include_package_data = true
 [tool.mypy]
 ignore_missing_imports = true
 
-[tool.pytest.ini_options]
-testpaths = ['test']
-
 [tool.ruff]
 line-length = 120
 extend-exclude = ["venv", ".mypy_cache", ".venv", "build", "dist", "experimental"]

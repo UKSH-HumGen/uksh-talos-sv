@@ -16,12 +16,16 @@ import gzip
 from argparse import ArgumentParser
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import IO, TYPE_CHECKING
 
 import pysam
 from loguru import logger
 
 from talos.models import PanelApp
 from talos.utils import read_json_from_path
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @dataclass
@@ -53,7 +57,7 @@ def parse_gff3_genes(gff3_path: str) -> dict[str, list[Gene]]:
     gene_dict = {}  # gene_id -> Gene object
     transcript_to_gene = {}  # transcript_id -> gene_id
 
-    open_func = gzip.open if gff3_path.endswith('.gz') else open
+    open_func: Callable[..., IO[str]] = gzip.open if gff3_path.endswith('.gz') else open  # type: ignore[assignment]
 
     # First pass: collect genes and transcripts
     with open_func(gff3_path, 'rt') as f:

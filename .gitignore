@@ -104,6 +104,9 @@ outputs/
 *.tmp
 *.temp
 
+# Stray pip output files (created by `pip install "pkg>=X.Y.Z"` run from repo root)
+=*
+
 # Local configuration files
 config/local/*
 !config/local/.gitkeep
