@@ -118,16 +118,12 @@ def apply_moi_to_variants(
 
     results = []
 
-    all_genes = list(variant_dict.keys())
-
     for gene, variants in variant_dict.items():
-
         comp_het_dict = find_comp_hets(var_list=variants, pedigree=pedigree)
 
         # extract the panel data specific to this gene
         # extract once per gene, not once per variant
         panel_gene_data = panelapp_data.get(gene)
-
 
         # variant appears to be in a red gene
         if panel_gene_data is None:
@@ -135,11 +131,9 @@ def apply_moi_to_variants(
             continue
 
         for variant in variants:
-
             # is this even possible?
             if not (variant.het_samples or variant.hom_samples):
                 continue
-
 
             # this variant is a candidate for MOI checks
             # - use MOI to get appropriate model
@@ -159,7 +153,6 @@ def apply_moi_to_variants(
                 partial_pen=bool(variant.info.get('categorybooleanclinvarplp', False)),
             )
 
-
             # Flag! If this is a ClinVar P/LP variant, and we interpret under a lenient MOI, add flag for analysts
             if panel_gene_data.moi == 'Mono_And_Biallelic' and variant.info.get('categorybooleanclinvarplp', False):
                 # consider each variant in turn
@@ -171,9 +164,7 @@ def apply_moi_to_variants(
                     if each_result.reasons == 'Autosomal Dominant':
                         each_result.flags.add(AMBIGUOUS_FLAG)
 
-
             results.extend(variant_results)
-
 
     return results
 
@@ -198,14 +189,14 @@ def filter_structural_variants(results_holder: ResultData) -> None:
         None, object updated in-place
     """
     # Get all config parameters
-    allowed_sv_types = set(config_retrieve(['StructuralVariantFiltering', 'allowed_sv_types'], ['DEL', 'CNV', 'DUP', 'INS', 'INV', 'BND']))
+    allowed_sv_types = set(
+        config_retrieve(['StructuralVariantFiltering', 'allowed_sv_types'], ['DEL', 'CNV', 'DUP', 'INS', 'INV', 'BND'])
+    )
     require_exon_overlap = config_retrieve(['StructuralVariantFiltering', 'require_exon_overlap'], False)
-    require_gene_overlap = config_retrieve(['StructuralVariantFiltering', 'require_gene_overlap'], True)
     filter_intronic_svs = config_retrieve(['StructuralVariantFiltering', 'filter_intronic_svs'], True)
     min_exon_overlap_bp = config_retrieve(['StructuralVariantFiltering', 'min_exon_overlap_bp'], 1)
     min_sv_size = config_retrieve(['StructuralVariantFiltering', 'min_sv_size'], 0)
     max_sv_size = config_retrieve(['StructuralVariantFiltering', 'max_sv_size'], 0)
-    require_pass_only = config_retrieve(['StructuralVariantFiltering', 'require_pass_only'], True)
 
     # Get AF thresholds from ValidateMOI config
     gnomad_sv_max_af = config_retrieve(['ValidateMOI', 'gnomad_sv_max_af'], 0.01)
@@ -218,7 +209,9 @@ def filter_structural_variants(results_holder: ResultData) -> None:
 
     # Intronic comp-het filters
     min_intronic_comp_het_size = config_retrieve(['StructuralVariantFiltering', 'min_intronic_comp_het_size'], 0)
-    allowed_intronic_comp_het_types = set(config_retrieve(['StructuralVariantFiltering', 'allowed_intronic_comp_het_types'], ['DEL']))
+    allowed_intronic_comp_het_types = set(
+        config_retrieve(['StructuralVariantFiltering', 'allowed_intronic_comp_het_types'], ['DEL'])
+    )
 
     # Counters for logging
     total_svs = 0
@@ -229,7 +222,7 @@ def filter_structural_variants(results_holder: ResultData) -> None:
     filtered_by_intronic = 0
     kept_svs = 0
 
-    for sample_id, participant_data in results_holder.results.items():
+    for _sample_id, participant_data in results_holder.results.items():
         if not participant_data.variants:
             continue
 
@@ -317,14 +310,18 @@ def filter_structural_variants(results_holder: ResultData) -> None:
         # Update the variant list
         participant_data.variants = kept_variants
 
-    logger.info(f'Comprehensive SV Filtering Summary:')
+    logger.info('Comprehensive SV Filtering Summary:')
     logger.info(f'  Total SVs processed: {total_svs}')
     logger.info(f'  Filtered by SV type (not in {allowed_sv_types}): {filtered_by_type}')
     logger.info(f'  Filtered by size (<{min_sv_size}bp or >{max_sv_size}bp): {filtered_by_size}')
     logger.info(f'  Filtered by strict exon overlap requirement: {filtered_by_exon_overlap}')
     logger.info(f'  Filtered by intronic (no exon overlap, not valid comp-het): {filtered_by_intronic}')
     logger.info(f'  Filtered by AF (gnomAD>{gnomad_sv_max_af} or callset>{callset_sv_max_af}): {filtered_by_af}')
-    logger.info(f'  Total kept: {kept_svs} ({kept_svs/total_svs*100:.1f}% of input)' if total_svs > 0 else '  Total kept: 0 (no SVs processed)')
+    logger.info(
+        f'  Total kept: {kept_svs} ({kept_svs / total_svs * 100:.1f}% of input)'
+        if total_svs > 0
+        else '  Total kept: 0 (no SVs processed)'
+    )
     logger.info(f'  Total filtered: {total_svs - kept_svs}' if total_svs > 0 else '  Total filtered: 0')
 
 
@@ -380,18 +377,13 @@ def filter_results_to_panels(
     # get the forced panel IDs from config, and add 0, the 'custom panel'
     forced_panel_ids = set(config_retrieve(['GeneratePanelData', 'forced_panels'], [])) | {0}
 
-
     # iterate over each separate reportable event
     for each_event in result_list:
-
-
         # find all panels featuring this gene
         gene_panels = panelapp.genes[each_event.gene].panels
 
-
         # get all forced panels this gene intersects with
         forced_panels_for_this_gene: set[int] = forced_panel_ids.intersection(gene_panels)
-
 
         # all panels assigned to this participant
         if each_event.sample in panelapp.participants:
@@ -403,29 +395,35 @@ def filter_results_to_panels(
             logger.warning(f'Participant {each_event.sample} not found in panelapp participants')
             natural_matches_for_this_gene = set()
 
-
         # DE NOVO BYPASS LOGIC (Approach 4B):
         # Allow de novo variants to bypass panel filtering IF they have pathogenicity support
         # Rationale: De novo variants often reveal unexpected diagnoses that don't match
         # the initial clinical phenotype. Requiring pathogenicity support reduces false
         # positives from poor inheritance calls.
         has_denovo_category = 'De Novo' in each_event.categories
-        has_pathogenicity_support = any([
-            'ClinVar P/LP' in each_event.categories,
-            'AlphaMissense' in each_event.categories,
-            'High Impact' in each_event.categories,
-        ])
+        has_pathogenicity_support = any(
+            [
+                'ClinVar P/LP' in each_event.categories,
+                'AlphaMissense' in each_event.categories,
+                'High Impact' in each_event.categories,
+            ]
+        )
         denovo_bypass = has_denovo_category and has_pathogenicity_support
-
 
         # if this gene is not on a forced or naturally matched panel for this participant, skip
         # UNLESS it qualifies for de novo bypass
-        if not (forced_panels_for_this_gene or natural_matches_for_this_gene or (default_panel in gene_panels) or denovo_bypass):
+        if not (
+            forced_panels_for_this_gene
+            or natural_matches_for_this_gene
+            or (default_panel in gene_panels)
+            or denovo_bypass
+        ):
             continue
 
-
         # Log when de novo bypass is used (for all variants, not just debug)
-        if denovo_bypass and not (forced_panels_for_this_gene or natural_matches_for_this_gene or (default_panel in gene_panels)):
+        if denovo_bypass and not (
+            forced_panels_for_this_gene or natural_matches_for_this_gene or (default_panel in gene_panels)
+        ):
             gene_symbol = panelapp.genes[each_event.gene].symbol
             pathogenicity_cats = [cat for cat in each_event.categories if cat != 'De Novo']
             logger.info(
@@ -439,7 +437,6 @@ def filter_results_to_panels(
             matched={pid: panelapp.metadata[pid].name for pid in natural_matches_for_this_gene},
             forced={pid: panelapp.metadata[pid].name for pid in forced_panels_for_this_gene},
         )
-
 
         # add this event to the list for this participant
         results_holder.results[each_event.sample].variants.append(each_event)

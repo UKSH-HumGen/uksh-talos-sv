@@ -34,8 +34,7 @@ PHASED_TRIO = join(INPUT, 'newphase.vcf.bgz')
 # Fixtures that depend on generated VCF files (not committed to the repo).
 # Run test/input/create_test_fixtures.py once to generate them.
 _MISSING_VCF_MSG = (
-    'Synthetic VCF fixtures are missing. '
-    'Run `python3 test/input/create_test_fixtures.py` to generate them.'
+    'Synthetic VCF fixtures are missing. Run `python3 test/input/create_test_fixtures.py` to generate them.'
 )
 _LABELLED_MISSING = not Path(LABELLED).exists()
 _PHASED_MISSING = not Path(PHASED_TRIO).exists()

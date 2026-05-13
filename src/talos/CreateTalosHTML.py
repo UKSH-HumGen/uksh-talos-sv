@@ -210,7 +210,6 @@ class HTMLBuilder:
         # Optionally read in the labels file
         # This file should be a nested dictionary of sample IDs and variant identifiers
         # with a list of corresponding label values, e.g.:
-        # ruff: noqa: ERA001
         # {
         #     "sample1": {
         #         "1-123456-A-T": ["label1", "label2"],
@@ -559,7 +558,7 @@ class Variant:
 
         raise ValueError(f'Unknown variant type: {self.var_data.__class__.__name__}')
 
-    def __init__(self, report_variant: ReportVariant, sample: Sample, ext_labels: list, html_builder: HTMLBuilder):  # noqa: PLR0915
+    def __init__(self, report_variant: ReportVariant, sample: Sample, ext_labels: list, html_builder: HTMLBuilder):
         self.var_data = report_variant.var_data
         self.var_type = report_variant.var_data.__class__.__name__
         self.chrom = report_variant.var_data.coordinates.chrom

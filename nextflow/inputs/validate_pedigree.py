@@ -18,31 +18,25 @@ def main(pedigree_file: str) -> int:
     try:
         pedigree = PedigreeParser(pedigree_file)
 
-        print("Pedigree file validated successfully.")
-        print(f"  Total participants: {len(pedigree.participants)}")
-        print(f"  Total families:     {len(pedigree.by_family)}")
-        print(f"  Affected members:   {len(pedigree.get_affected_members())}")
-        print(
-            "  Unaffected members: "
-            f"{len(pedigree.participants) - len(pedigree.get_affected_members())}"
-        )
+        print('Pedigree file validated successfully.')
+        print(f'  Total participants: {len(pedigree.participants)}')
+        print(f'  Total families:     {len(pedigree.by_family)}')
+        print(f'  Affected members:   {len(pedigree.get_affected_members())}')
+        print(f'  Unaffected members: {len(pedigree.participants) - len(pedigree.get_affected_members())}')
 
-        print("\nSample family breakdown (first 5 families):")
+        print('\nSample family breakdown (first 5 families):')
         for family_id, members in list(pedigree.by_family.items())[:5]:
-            print(f"  Family {family_id}: {len(members)} members")
+            print(f'  Family {family_id}: {len(members)} members')
             for member in members:
-                print(
-                    f"    - {member.sample_id} "
-                    f"(Sex: {member.sex}, Affected: {member.affected})"
-                )
+                print(f'    - {member.sample_id} (Sex: {member.sex}, Affected: {member.affected})')
                 if member.hpo_terms:
-                    print(f"      HPO terms: {len(member.hpo_terms)} terms")
+                    print(f'      HPO terms: {len(member.hpo_terms)} terms')
 
-        print("\nPedigree file is valid.")
+        print('\nPedigree file is valid.')
         return 0
 
-    except Exception as exc:  # noqa: BLE001
-        print(f"Error validating pedigree file: {exc}")
+    except Exception as exc:
+        print(f'Error validating pedigree file: {exc}')
         return 1
 
 

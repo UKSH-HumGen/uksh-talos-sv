@@ -22,7 +22,7 @@ families = {}
 all_samples = set()
 probands = []
 
-with open(pedigree_file, 'r') as f:
+with open(pedigree_file) as f:
     for line_num, line in enumerate(f, 1):
         line = line.strip()
         if not line:
@@ -32,7 +32,7 @@ with open(pedigree_file, 'r') as f:
 
         # Check minimum required columns
         if len(parts) < 6:
-            errors.append(f"Line {line_num}: Expected at least 6 columns, got {len(parts)}")
+            errors.append(f'Line {line_num}: Expected at least 6 columns, got {len(parts)}')
             continue
 
         family_id = parts[0]
@@ -70,14 +70,16 @@ with open(pedigree_file, 'r') as f:
         all_samples.add(sample_id)
         if family_id not in families:
             families[family_id] = []
-        families[family_id].append({
-            'sample_id': sample_id,
-            'father_id': father_id,
-            'mother_id': mother_id,
-            'sex': sex,
-            'affected': affected,
-            'hpo_terms': hpo_terms
-        })
+        families[family_id].append(
+            {
+                'sample_id': sample_id,
+                'father_id': father_id,
+                'mother_id': mother_id,
+                'sex': sex,
+                'affected': affected,
+                'hpo_terms': hpo_terms,
+            }
+        )
 
         # Track probands (affected individuals)
         if affected == '2':
@@ -93,59 +95,59 @@ for family_id, members in families.items():
             warnings.append(f"Sample {member['sample_id']}: Mother ID '{member['mother_id']}' not found in family")
 
 # Print results
-print("=" * 70)
-print("PEDIGREE FILE VALIDATION RESULTS")
-print("=" * 70)
+print('=' * 70)
+print('PEDIGREE FILE VALIDATION RESULTS')
+print('=' * 70)
 
 if errors:
-    print(f"\n✗ ERRORS FOUND ({len(errors)}):")
+    print(f'\n✗ ERRORS FOUND ({len(errors)}):')
     for error in errors[:10]:  # Show first 10 errors
-        print(f"  - {error}")
+        print(f'  - {error}')
     if len(errors) > 10:
-        print(f"  ... and {len(errors) - 10} more errors")
+        print(f'  ... and {len(errors) - 10} more errors')
 else:
-    print("\n✓ No errors found!")
+    print('\n✓ No errors found!')
 
 if warnings:
-    print(f"\n⚠ WARNINGS ({len(warnings)}):")
+    print(f'\n⚠ WARNINGS ({len(warnings)}):')
     for warning in warnings[:10]:  # Show first 10 warnings
-        print(f"  - {warning}")
+        print(f'  - {warning}')
     if len(warnings) > 10:
-        print(f"  ... and {len(warnings) - 10} more warnings")
+        print(f'  ... and {len(warnings) - 10} more warnings')
 else:
-    print("\n✓ No warnings!")
+    print('\n✓ No warnings!')
 
-print(f"\n" + "=" * 70)
-print("STATISTICS")
-print("=" * 70)
-print(f"Total samples:       {len(all_samples)}")
-print(f"Total families:      {len(families)}")
-print(f"Affected (probands): {len(probands)}")
-print(f"Unaffected:          {len(all_samples) - len(probands)}")
+print('\n' + '=' * 70)
+print('STATISTICS')
+print('=' * 70)
+print(f'Total samples:       {len(all_samples)}')
+print(f'Total families:      {len(families)}')
+print(f'Affected (probands): {len(probands)}')
+print(f'Unaffected:          {len(all_samples) - len(probands)}')
 
-print(f"\nFamily size distribution:")
+print('\nFamily size distribution:')
 family_sizes = {}
 for family_id, members in families.items():
     size = len(members)
     family_sizes[size] = family_sizes.get(size, 0) + 1
 
 for size in sorted(family_sizes.keys()):
-    print(f"  {size} members: {family_sizes[size]} families")
+    print(f'  {size} members: {family_sizes[size]} families')
 
-print(f"\nSample families (first 5):")
+print('\nSample families (first 5):')
 for i, (family_id, members) in enumerate(list(families.items())[:5]):
-    print(f"\n  Family: {family_id} ({len(members)} members)")
+    print(f'\n  Family: {family_id} ({len(members)} members)')
     for member in members:
-        hpo_info = f" [{len(member['hpo_terms'].split(','))} HPO terms]" if member['hpo_terms'] else ""
-        affected_str = "Affected" if member['affected'] == '2' else "Unaffected"
-        sex_str = "Male" if member['sex'] == '1' else "Female" if member['sex'] == '2' else "Unknown"
-        print(f"    - {member['sample_id']}: {sex_str}, {affected_str}{hpo_info}")
+        hpo_info = f' [{len(member["hpo_terms"].split(","))} HPO terms]' if member['hpo_terms'] else ''
+        affected_str = 'Affected' if member['affected'] == '2' else 'Unaffected'
+        sex_str = 'Male' if member['sex'] == '1' else 'Female' if member['sex'] == '2' else 'Unknown'
+        print(f'    - {member["sample_id"]}: {sex_str}, {affected_str}{hpo_info}')
 
 if not errors:
-    print(f"\n" + "=" * 70)
-    print("✓ PEDIGREE FILE IS VALID AND READY TO USE!")
-    print("=" * 70)
+    print('\n' + '=' * 70)
+    print('✓ PEDIGREE FILE IS VALID AND READY TO USE!')
+    print('=' * 70)
 else:
-    print(f"\n" + "=" * 70)
-    print("✗ PEDIGREE FILE HAS ERRORS - PLEASE FIX BEFORE USING")
-    print("=" * 70)
+    print('\n' + '=' * 70)
+    print('✗ PEDIGREE FILE HAS ERRORS - PLEASE FIX BEFORE USING')
+    print('=' * 70)

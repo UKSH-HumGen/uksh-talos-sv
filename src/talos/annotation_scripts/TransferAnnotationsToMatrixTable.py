@@ -12,9 +12,11 @@ try:
     # cpg-utils is an optional dependency (see pyproject.toml [project.optional-dependencies] cpg)
     from cpg_utils.hail_batch import init_batch  # type: ignore
 except ImportError:  # pragma: no cover
+
     def init_batch():  # type: ignore[misc]
         """Fallback no-op when cpg-utils is not installed."""
         return None
+
 
 from loguru import logger
 
@@ -92,7 +94,6 @@ def main(
 
     # a couple of lines commented of to make this as easy as possible to adopt
     # talos doesn't make use of these annotations yet
-    # ruff: noqa: ERA001
     mt = mt.annotate_rows(
         gnomad=hl.struct(
             gnomad_AC=matched_annotations.info.gnomad_AC_joint,

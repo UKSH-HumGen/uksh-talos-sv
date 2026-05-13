@@ -16,7 +16,6 @@ import gzip
 from argparse import ArgumentParser
 from collections import defaultdict
 from dataclasses import dataclass
-from pathlib import Path
 
 import pysam
 from loguru import logger
@@ -28,6 +27,7 @@ from talos.utils import read_json_from_path
 @dataclass
 class Gene:
     """Represents a gene with its coordinates and exons."""
+
     gene_id: str
     gene_name: str
     chrom: str
@@ -141,7 +141,9 @@ def calculate_overlap(start1: int, end1: int, start2: int, end2: int) -> int:
     return max(0, min(end1, end2) - max(start1, start2))
 
 
-def find_overlapping_genes(chrom: str, sv_start: int, sv_end: int, genes_by_chr: dict, debug: bool = False) -> list[Gene]:
+def find_overlapping_genes(
+    chrom: str, sv_start: int, sv_end: int, genes_by_chr: dict, debug: bool = False
+) -> list[Gene]:
     """
     Find genes that overlap with an SV.
     Handles both chr2 and 2 chromosome naming conventions.
@@ -164,7 +166,9 @@ def find_overlapping_genes(chrom: str, sv_start: int, sv_end: int, genes_by_chr:
         if debug and test_chrom in genes_by_chr:
             logger.debug(f'  Found {len(genes_on_chr)} genes for chromosome {test_chrom}')
             if genes_on_chr:
-                logger.debug(f'    First gene: {genes_on_chr[0].gene_name} at {genes_on_chr[0].start}-{genes_on_chr[0].end}')
+                logger.debug(
+                    f'    First gene: {genes_on_chr[0].gene_name} at {genes_on_chr[0].start}-{genes_on_chr[0].end}'
+                )
                 logger.debug(f'    SV position: {sv_start}-{sv_end}')
 
         for gene in genes_on_chr:
@@ -195,15 +199,23 @@ def calculate_exon_overlap(sv_start: int, sv_end: int, gene: Gene) -> tuple[int,
     for exon_start, exon_end in gene.exons:
         overlap = calculate_overlap(sv_start, sv_end, exon_start, exon_end)
         total_exon_overlap += overlap
-        total_exon_length += (exon_end - exon_start)
+        total_exon_length += exon_end - exon_start
 
     exon_overlap_pct = (total_exon_overlap / total_exon_length * 100) if total_exon_length > 0 else 0.0
 
     return total_exon_overlap, exon_overlap_pct
 
 
-def categorize_sv(chrom: str, pos: int, sv_end: int, sv_type: str, sv_len: int,
-                  genes_by_chr: dict, green_genes: set, debug: bool = False) -> dict:
+def categorize_sv(
+    chrom: str,
+    pos: int,
+    sv_end: int,
+    sv_type: str,
+    sv_len: int,
+    genes_by_chr: dict,
+    green_genes: set,
+    debug: bool = False,
+) -> dict:
     """
     Categorize a structural variant based on gene/exon overlap.
 
@@ -253,13 +265,15 @@ def categorize_sv(chrom: str, pos: int, sv_end: int, sv_type: str, sv_len: int,
         elif abs(sv_len) > 1000 and gene.gene_id in green_genes:
             is_high_impact = True
 
-    categories.update({
-        'gene_id': gene.gene_id,
-        'gene_symbol': gene.gene_name or gene.gene_id,
-        'categorybooleanhighimpact': '1' if is_high_impact else '0',
-        'exon_overlap_bp': str(int(exon_overlap_bp)),
-        'exon_overlap_pct': f'{exon_overlap_pct:.2f}',
-    })
+    categories.update(
+        {
+            'gene_id': gene.gene_id,
+            'gene_symbol': gene.gene_name or gene.gene_id,
+            'categorybooleanhighimpact': '1' if is_high_impact else '0',
+            'exon_overlap_bp': str(int(exon_overlap_bp)),
+            'exon_overlap_pct': f'{exon_overlap_pct:.2f}',
+        }
+    )
 
     return categories
 
@@ -321,7 +335,7 @@ def categorize_sv_vcf(input_vcf: str, output_vcf: str, gff3_path: str, panelapp_
                 sv_end = pos + abs(sv_len)
 
         # Enable detailed debug logging for first 3 SVs
-        debug = (total_svs <= 3)
+        debug = total_svs <= 3
         if debug:
             logger.info(f'\n=== Analyzing SV #{total_svs}: {chrom}:{pos}-{sv_end} ({sv_type}, SVLEN={sv_len}) ===')
 
@@ -348,8 +362,8 @@ def categorize_sv_vcf(input_vcf: str, output_vcf: str, gff3_path: str, panelapp_
     vcf_out.close()
 
     logger.info(f'Processed {total_svs} structural variants')
-    logger.info(f'  - {categorized_svs} overlapping genes ({categorized_svs/total_svs*100:.1f}%)')
-    logger.info(f'  - {high_impact_svs} high impact ({high_impact_svs/total_svs*100:.1f}%)')
+    logger.info(f'  - {categorized_svs} overlapping genes ({categorized_svs / total_svs * 100:.1f}%)')
+    logger.info(f'  - {high_impact_svs} high impact ({high_impact_svs / total_svs * 100:.1f}%)')
     logger.info(f'Output written to: {output_vcf}')
     logger.info('=== SV Categorization Complete ===')
 

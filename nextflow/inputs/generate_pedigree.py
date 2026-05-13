@@ -4,7 +4,7 @@ Generate a pedigree file from Cases.txt
 """
 
 import re
-import sys
+
 
 def clean_hpo_terms(hpo_str):
     """Clean HPO terms by removing descriptions and extra formatting"""
@@ -24,11 +24,12 @@ def clean_hpo_terms(hpo_str):
 
     return ','.join(clean_terms) if clean_terms else ''
 
+
 def parse_cases_file(filepath):
     """Parse Cases.txt and generate pedigree entries"""
     pedigree_lines = []
 
-    with open(filepath, 'r') as f:
+    with open(filepath) as f:
         # Read all content
         content = f.read()
 
@@ -75,75 +76,70 @@ def parse_cases_file(filepath):
 
         if case_type == 'TRIO':
             # Proband (affected)
-            father_id = f"{vcf_id}-FATHER"
-            mother_id = f"{vcf_id}-MOTHER"
-            proband_line = f"{family_id}\t{vcf_id}\t{father_id}\t{mother_id}\t{sex}\t2"
+            father_id = f'{vcf_id}-FATHER'
+            mother_id = f'{vcf_id}-MOTHER'
+            proband_line = f'{family_id}\t{vcf_id}\t{father_id}\t{mother_id}\t{sex}\t2'
             if hpo_terms:
-                proband_line += f"\t{hpo_terms}"
+                proband_line += f'\t{hpo_terms}'
             pedigree_lines.append(proband_line)
 
             # Father (unaffected)
-            pedigree_lines.append(f"{family_id}\t{father_id}\t0\t0\t1\t1")
+            pedigree_lines.append(f'{family_id}\t{father_id}\t0\t0\t1\t1')
 
             # Mother (unaffected)
-            pedigree_lines.append(f"{family_id}\t{mother_id}\t0\t0\t2\t1")
+            pedigree_lines.append(f'{family_id}\t{mother_id}\t0\t0\t2\t1')
 
         elif case_type == 'DUO':
             # Proband (affected)
-            mother_id = f"{vcf_id}-MOTHER"
-            proband_line = f"{family_id}\t{vcf_id}\t0\t{mother_id}\t{sex}\t2"
+            mother_id = f'{vcf_id}-MOTHER'
+            proband_line = f'{family_id}\t{vcf_id}\t0\t{mother_id}\t{sex}\t2'
             if hpo_terms:
-                proband_line += f"\t{hpo_terms}"
+                proband_line += f'\t{hpo_terms}'
             pedigree_lines.append(proband_line)
 
             # Mother (unaffected)
-            pedigree_lines.append(f"{family_id}\t{mother_id}\t0\t0\t2\t1")
+            pedigree_lines.append(f'{family_id}\t{mother_id}\t0\t0\t2\t1')
 
         elif case_type in ['QUADA', 'QUADB']:
             # Proband (affected) with both parents and a sibling
-            father_id = f"{vcf_id}-FATHER"
-            mother_id = f"{vcf_id}-MOTHER"
-            sibling_id = f"{vcf_id}-SIBLING"
+            father_id = f'{vcf_id}-FATHER'
+            mother_id = f'{vcf_id}-MOTHER'
+            sibling_id = f'{vcf_id}-SIBLING'
 
-            proband_line = f"{family_id}\t{vcf_id}\t{father_id}\t{mother_id}\t{sex}\t2"
+            proband_line = f'{family_id}\t{vcf_id}\t{father_id}\t{mother_id}\t{sex}\t2'
             if hpo_terms:
-                proband_line += f"\t{hpo_terms}"
+                proband_line += f'\t{hpo_terms}'
             pedigree_lines.append(proband_line)
 
             # Father (unaffected)
-            pedigree_lines.append(f"{family_id}\t{father_id}\t0\t0\t1\t1")
+            pedigree_lines.append(f'{family_id}\t{father_id}\t0\t0\t1\t1')
 
             # Mother (unaffected)
-            pedigree_lines.append(f"{family_id}\t{mother_id}\t0\t0\t2\t1")
+            pedigree_lines.append(f'{family_id}\t{mother_id}\t0\t0\t2\t1')
 
             # Sibling (unaffected, unknown sex)
-            pedigree_lines.append(f"{family_id}\t{sibling_id}\t{father_id}\t{mother_id}\t0\t1")
+            pedigree_lines.append(f'{family_id}\t{sibling_id}\t{father_id}\t{mother_id}\t0\t1')
 
         else:
             # SINGLETON or unknown - just the proband
-            proband_line = f"{family_id}\t{vcf_id}\t0\t0\t{sex}\t2"
+            proband_line = f'{family_id}\t{vcf_id}\t0\t0\t{sex}\t2'
             if hpo_terms:
-                proband_line += f"\t{hpo_terms}"
+                proband_line += f'\t{hpo_terms}'
             pedigree_lines.append(proband_line)
 
         i += 1
 
     return pedigree_lines
 
+
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description='Generate a Talos-compatible pedigree file from a Cases.txt sheet.'
-    )
+    parser = argparse.ArgumentParser(description='Generate a Talos-compatible pedigree file from a Cases.txt sheet.')
     parser.add_argument(
-        '--input', '-i', required=True,
-        help='Path to Cases.txt (tab-separated: VCF_ID, Gender, CASE_TYPE, HPO).'
+        '--input', '-i', required=True, help='Path to Cases.txt (tab-separated: VCF_ID, Gender, CASE_TYPE, HPO).'
     )
-    parser.add_argument(
-        '--output', '-o', required=True,
-        help='Path where the generated .ped file will be written.'
-    )
+    parser.add_argument('--output', '-o', required=True, help='Path where the generated .ped file will be written.')
     args = parser.parse_args()
 
     pedigree_entries = parse_cases_file(args.input)
@@ -152,5 +148,5 @@ if __name__ == '__main__':
         for entry in pedigree_entries:
             f.write(entry + '\n')
 
-    print(f"Generated pedigree file with {len(pedigree_entries)} entries")
-    print(f"Output: {args.output}")
+    print(f'Generated pedigree file with {len(pedigree_entries)} entries')
+    print(f'Output: {args.output}')

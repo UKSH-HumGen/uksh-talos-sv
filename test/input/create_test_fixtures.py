@@ -23,9 +23,8 @@ newphase.vcf.bgz + .tbi
     Variant 2: CategoryBoolean3=1, CategorySample4=mother_1
 """
 
-import subprocess
-import sys
 import os
+import subprocess
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,8 +34,8 @@ def write_vcf(path: str, content: str) -> None:
     plain = path.replace('.vcf.bgz', '.vcf')
     with open(plain, 'w') as fh:
         fh.write(content)
-    subprocess.run(['bgzip', '-f', plain], check=True)
-    subprocess.run(['tabix', '-p', 'vcf', path], check=True)
+    subprocess.run(['bgzip', '-f', plain], check=True)  # noqa: S603 S607
+    subprocess.run(['tabix', '-p', 'vcf', path], check=True)  # noqa: S603 S607
     print(f'Created: {path}')
 
 

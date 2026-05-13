@@ -355,10 +355,10 @@ def filter_on_quality_flags(mt: hl.MatrixTable) -> hl.MatrixTable:
         MT with all filtered variants removed
     """
     return mt.filter_rows(
-        hl.is_missing(mt.filters) | 
-        (mt.filters.length() == 0) | 
-        (mt.info.clinvar_talos == ONE_INT) |
-        (mt.info.get('QD', 100) > 0.1)  # Include variants with QD > 0.1
+        hl.is_missing(mt.filters)
+        | (mt.filters.length() == 0)
+        | (mt.info.clinvar_talos == ONE_INT)
+        | (mt.info.get('QD', 100) > 0.1)  # Include variants with QD > 0.1
     )
 
 
@@ -474,15 +474,15 @@ def annotate_category_alphamissense(mt: hl.MatrixTable) -> hl.MatrixTable:
         transcript_consequences=mt.transcript_consequences.map(
             lambda x: x.annotate(
                 am_class=hl.case()
-                    .when(hl.is_defined(x.am_class), x.am_class)
-                    .when(hl.is_defined(x.am_pathogenicity) & (x.am_pathogenicity > 0.564), 'likely_pathogenic')
-                    .when(hl.is_defined(x.am_pathogenicity) & (x.am_pathogenicity < 0.34), 'likely_benign')
-                    .when(hl.is_defined(x.am_pathogenicity), 'ambiguous')
-                    .or_missing()
+                .when(hl.is_defined(x.am_class), x.am_class)
+                .when(hl.is_defined(x.am_pathogenicity) & (x.am_pathogenicity > 0.564), 'likely_pathogenic')
+                .when(hl.is_defined(x.am_pathogenicity) & (x.am_pathogenicity < 0.34), 'likely_benign')
+                .when(hl.is_defined(x.am_pathogenicity), 'ambiguous')
+                .or_missing()
             )
         )
     )
-    
+
     # Then apply the original logic
     return mt.annotate_rows(
         info=mt.info.annotate(
@@ -916,7 +916,7 @@ def cli_main():
     )
 
 
-def main(  # noqa: PLR0915
+def main(
     mt_path: str,
     panel_data: str,
     pedigree: str,

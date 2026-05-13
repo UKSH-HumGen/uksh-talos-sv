@@ -14,6 +14,7 @@ try:
     # cpg-utils is an optional dependency (see pyproject.toml [project.optional-dependencies] cpg)
     from cpg_utils.hail_batch import init_batch  # type: ignore
 except ImportError:  # pragma: no cover
+
     def init_batch():  # type: ignore[misc]
         """Fallback no-op when cpg-utils is not installed.
 
@@ -21,6 +22,7 @@ except ImportError:  # pragma: no cover
         the caller; this stub just avoids an ImportError at module load.
         """
         return None
+
 
 from loguru import logger
 

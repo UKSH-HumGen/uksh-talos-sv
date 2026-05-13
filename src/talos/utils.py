@@ -406,9 +406,7 @@ def create_small_variant(
     coordinates = Coordinates(chrom=var.CHROM.replace('chr', ''), pos=var.POS, ref=var.REF, alt=var.ALT[0])
     info: dict[str, Any] = {x.lower(): y for x, y in var.INFO} | {'var_link': coordinates.string_format}
 
-
     het_samples, hom_samples = get_non_ref_samples(variant=var, samples=samples)
-
 
     # organise PM5
     organise_pm5(info)
@@ -442,11 +440,9 @@ def create_small_variant(
         if key.startswith('categorysample') and key.replace('categorysample', '') not in ignored_categories
     ]
 
-
     # the categories to be treated as support-only for this runtime - make it a set
     support_categories = {word.lower() for word in config_retrieve(['ValidateMOI', 'support_categories'], [])}
     support_categories.update({translate_category(x) for x in support_categories})
-
 
     # overwrite with true booleans
     for cat in boolean_categories:
@@ -461,12 +457,10 @@ def create_small_variant(
         elif isinstance(info[sam_cat], set):
             info[sam_cat] = list(info[sam_cat])
 
-
     # check that there's at least one category left after the PM5/Exomiser/SVDB/other processing, else return None
     # this isn't a sample-specific check, just a check that there's anything left worth classifying on
     if not (any(info[cat] for cat in boolean_categories) or any(info[cat] for cat in sample_categories)):
         return None
-
 
     phased = get_phase_data(samples, var)
 
@@ -612,10 +606,8 @@ def gather_gene_dict_from_contig(
     # iterate over all variants on this contig and store by unique key
     # if contig has no variants, prints an error and returns []
     for variant in variant_source(contig):
-
         # Check if this is a structural variant (symbolic ALT or has SVTYPE INFO field)
         is_sv = any(alt.startswith('<') and alt.endswith('>') for alt in variant.ALT) or 'SVTYPE' in dict(variant.INFO)
-
 
         if is_sv:
             # Handle as structural variant
@@ -628,18 +620,15 @@ def gather_gene_dict_from_contig(
             if (small_variant := create_small_variant(var=variant, samples=variant_source.samples)) is None:
                 continue
 
-
             if small_variant.coordinates.string_format in blacklist:
                 logger.info(f'Skipping blacklisted variant: {small_variant.coordinates.string_format}')
                 continue
-
 
             # update the variant count
             contig_variants += 1
 
             # update the gene index dictionary
             contig_dict[small_variant.info['gene_id']].append(small_variant)
-
 
     # parse the SV VCF if provided, but not a necessary part of processing
     # Note: This is for backward compatibility with separate SV VCF workflows

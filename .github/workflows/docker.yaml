@@ -28,7 +28,7 @@ jobs:
       BUILDKIT_PROGRESS: plain
       IMAGE_NAME: uksh-talos-sv
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: build (sanity check, no push)
         run: |

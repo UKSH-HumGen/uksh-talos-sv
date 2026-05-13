@@ -9,17 +9,18 @@ This script:
 4. Filters to show only phenotype-matched SVs (optional)
 """
 
-import json
-import sys
-import re
 import gzip
+import json
 import os
-import toml
-from datetime import datetime
+import sys
 from collections import defaultdict
+from datetime import datetime
+
+import toml
 
 # Import the base functionality from the enhanced merge script
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 
 def load_sv_filter_config(config_path=None):
     """Load structural variant filtering configuration from TOML file."""
@@ -27,31 +28,32 @@ def load_sv_filter_config(config_path=None):
         config_path = os.environ.get('TALOS_CONFIG', 'inputs/config.toml')
 
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path) as f:
             config = toml.load(f)
 
         sv_config = config.get('StructuralVariantFiltering', {})
-        print(f"Loaded SV filtering config from {config_path}")
-        print(f"  - require_gene_overlap: {sv_config.get('require_gene_overlap', False)}")
-        print(f"  - require_exon_overlap: {sv_config.get('require_exon_overlap', False)}")
-        print(f"  - require_phenotype_match: {sv_config.get('require_phenotype_match', False)}")
-        print(f"  - min_phenotype_score: {sv_config.get('min_phenotype_score', 0.0)}")
-        print(f"  - allowed_sv_types: {sv_config.get('allowed_sv_types', [])}")
-        print(f"  - require_pass_only: {sv_config.get('require_pass_only', False)}")
-        print(f"  - min_sv_size: {sv_config.get('min_sv_size', 0)}")
+        print(f'Loaded SV filtering config from {config_path}')
+        print(f'  - require_gene_overlap: {sv_config.get("require_gene_overlap", False)}')
+        print(f'  - require_exon_overlap: {sv_config.get("require_exon_overlap", False)}')
+        print(f'  - require_phenotype_match: {sv_config.get("require_phenotype_match", False)}')
+        print(f'  - min_phenotype_score: {sv_config.get("min_phenotype_score", 0.0)}')
+        print(f'  - allowed_sv_types: {sv_config.get("allowed_sv_types", [])}')
+        print(f'  - require_pass_only: {sv_config.get("require_pass_only", False)}')
+        print(f'  - min_sv_size: {sv_config.get("min_sv_size", 0)}')
 
         return sv_config
     except Exception as e:
-        print(f"Warning: Could not load SV filter config from {config_path}: {e}")
-        print("Using default filtering parameters")
+        print(f'Warning: Could not load SV filter config from {config_path}: {e}')
+        print('Using default filtering parameters')
         return {}
+
 
 def load_gene_to_hpo_mapping(gen2phen_file):
     """Load gene to HPO term mappings from genes_to_phenotype.txt file."""
     gene_to_hpo = defaultdict(set)
 
     try:
-        with open(gen2phen_file, 'r') as f:
+        with open(gen2phen_file) as f:
             for line in f:
                 fields = line.strip().split('\t')
                 if len(fields) >= 3:
@@ -59,18 +61,19 @@ def load_gene_to_hpo_mapping(gen2phen_file):
                     hpo_term = fields[2]
                     gene_to_hpo[gene_symbol].add(hpo_term)
 
-        print(f"Loaded HPO mappings for {len(gene_to_hpo)} genes")
+        print(f'Loaded HPO mappings for {len(gene_to_hpo)} genes')
     except Exception as e:
-        print(f"Warning: Could not load gene-to-HPO mappings: {e}")
+        print(f'Warning: Could not load gene-to-HPO mappings: {e}')
 
     return gene_to_hpo
+
 
 def load_patient_hpo_terms(pedigree_file, sample_id):
     """Load patient HPO terms from pedigree file."""
     patient_hpo = set()
 
     try:
-        with open(pedigree_file, 'r') as f:
+        with open(pedigree_file) as f:
             for line in f:
                 fields = line.strip().split('\t')
                 if len(fields) >= 7:
@@ -79,15 +82,16 @@ def load_patient_hpo_terms(pedigree_file, sample_id):
                         hpo_string = fields[6]
                         # Parse comma-separated HPO terms
                         hpo_terms = hpo_string.split(',')
-                        patient_hpo = set(term.strip() for term in hpo_terms if term.strip().startswith('HP:'))
+                        patient_hpo = {term.strip() for term in hpo_terms if term.strip().startswith('HP:')}
                         break
 
-        print(f"Loaded {len(patient_hpo)} HPO terms for patient {sample_id}")
-        print(f"Patient HPO terms: {patient_hpo}")
+        print(f'Loaded {len(patient_hpo)} HPO terms for patient {sample_id}')
+        print(f'Patient HPO terms: {patient_hpo}')
     except Exception as e:
-        print(f"Warning: Could not load patient HPO terms: {e}")
+        print(f'Warning: Could not load patient HPO terms: {e}')
 
     return patient_hpo
+
 
 def calculate_phenotype_match(gene_symbols, patient_hpo, gene_to_hpo):
     """
@@ -98,11 +102,7 @@ def calculate_phenotype_match(gene_symbols, patient_hpo, gene_to_hpo):
         - match_details: dict with details about the matches
     """
     matched_genes = []
-    match_details = {
-        'total_overlaps': 0,
-        'matching_hpo_terms': set(),
-        'genes_with_matches': []
-    }
+    match_details = {'total_overlaps': 0, 'matching_hpo_terms': set(), 'genes_with_matches': []}
 
     for gene_symbol in gene_symbols:
         gene_hpo = gene_to_hpo.get(gene_symbol, set())
@@ -117,15 +117,18 @@ def calculate_phenotype_match(gene_symbols, patient_hpo, gene_to_hpo):
             matched_genes.append(gene_symbol)
             match_details['total_overlaps'] += len(overlapping_hpo)
             match_details['matching_hpo_terms'].update(overlapping_hpo)
-            match_details['genes_with_matches'].append({
-                'gene': gene_symbol,
-                'matching_terms': list(overlapping_hpo),
-                'match_count': len(overlapping_hpo),
-                'total_gene_hpo': len(gene_hpo),
-                'match_percentage': (len(overlapping_hpo) / len(patient_hpo)) * 100 if patient_hpo else 0
-            })
+            match_details['genes_with_matches'].append(
+                {
+                    'gene': gene_symbol,
+                    'matching_terms': list(overlapping_hpo),
+                    'match_count': len(overlapping_hpo),
+                    'total_gene_hpo': len(gene_hpo),
+                    'match_percentage': (len(overlapping_hpo) / len(patient_hpo)) * 100 if patient_hpo else 0,
+                }
+            )
 
     return matched_genes, match_details
+
 
 def load_gene_annotations(gff_file=None):
     """Load gene annotations from GFF3 file organized by chromosome."""
@@ -141,7 +144,7 @@ def load_gene_annotations(gff_file=None):
             '../../../large_files/Homo_sapiens.GRCh38.113.gff3.gz',
             '../../../../large_files/Homo_sapiens.GRCh38.113.gff3.gz',
             os.path.join(script_dir, '../large_files/Homo_sapiens.GRCh38.113.gff3.gz'),
-            '/Users/Daniel-K/Desktop/Reanalysis-Talos/talos-main/large_files/Homo_sapiens.GRCh38.113.gff3.gz'
+            '/Users/Daniel-K/Desktop/Reanalysis-Talos/talos-main/large_files/Homo_sapiens.GRCh38.113.gff3.gz',
         ]
         for path in possible_paths:
             if os.path.exists(path):
@@ -149,7 +152,7 @@ def load_gene_annotations(gff_file=None):
                 break
 
     if not gff_file or not os.path.exists(gff_file):
-        print("Warning: No GFF3 file found for gene annotation")
+        print('Warning: No GFF3 file found for gene annotation')
         return gene_annotations
 
     try:
@@ -187,32 +190,38 @@ def load_gene_annotations(gff_file=None):
                     if chrom_clean not in gene_annotations:
                         gene_annotations[chrom_clean] = []
 
-                    gene_annotations[chrom_clean].append({
-                        'gene_id': gene_id,
-                        'gene_name': gene_name,
-                        'biotype': gene_biotype,
-                        'start': int(start),
-                        'end': int(end),
-                        'strand': strand
-                    })
+                    gene_annotations[chrom_clean].append(
+                        {
+                            'gene_id': gene_id,
+                            'gene_name': gene_name,
+                            'biotype': gene_biotype,
+                            'start': int(start),
+                            'end': int(end),
+                            'strand': strand,
+                        }
+                    )
                     gene_count += 1
 
         # Sort genes by start position for efficient overlap detection
         for chrom in gene_annotations:
             gene_annotations[chrom].sort(key=lambda x: x['start'])
 
-        print(f"Loaded {gene_count} genes from GFF3 file")
+        print(f'Loaded {gene_count} genes from GFF3 file')
 
         # Debug: print chromosome distribution
         chrom_counts = {chrom: len(genes) for chrom, genes in gene_annotations.items()}
-        print(f"Gene distribution: {sorted(chrom_counts.items(), key=lambda x: int(x[0]) if x[0].isdigit() else 99)[:10]}")
+        print(
+            f'Gene distribution: {sorted(chrom_counts.items(), key=lambda x: int(x[0]) if x[0].isdigit() else 99)[:10]}'
+        )
 
     except Exception as e:
-        print(f"Error loading GFF3 file: {e}")
+        print(f'Error loading GFF3 file: {e}')
         import traceback
+
         traceback.print_exc()
 
     return gene_annotations
+
 
 def load_exon_annotations():
     """Load exon annotations from GFF3 file."""
@@ -221,7 +230,7 @@ def load_exon_annotations():
     exons_by_chr = defaultdict(list)
 
     try:
-        print(f"Loading exon annotations from {gff3_file}...")
+        print(f'Loading exon annotations from {gff3_file}...')
         with gzip.open(gff3_file, 'rt') as f:
             for line in f:
                 if line.startswith('#'):
@@ -239,23 +248,20 @@ def load_exon_annotations():
 
                 chrom_normalized = chrom.replace('chr', '')
 
-                exons_by_chr[chrom_normalized].append({
-                    'start': int(start),
-                    'end': int(end),
-                    'strand': strand
-                })
+                exons_by_chr[chrom_normalized].append({'start': int(start), 'end': int(end), 'strand': strand})
 
         # Sort exons by start position for each chromosome
         for chrom in exons_by_chr:
             exons_by_chr[chrom].sort(key=lambda x: x['start'])
 
         total_exons = sum(len(exons) for exons in exons_by_chr.values())
-        print(f"Loaded {total_exons:,} exons across {len(exons_by_chr)} chromosomes")
+        print(f'Loaded {total_exons:,} exons across {len(exons_by_chr)} chromosomes')
     except Exception as e:
-        print(f"Warning: Could not load exon annotations: {e}")
+        print(f'Warning: Could not load exon annotations: {e}')
         return {}
 
     return exons_by_chr
+
 
 def check_exon_overlap(chrom, start, end, exon_annotations):
     """Check if SV overlaps with any exons."""
@@ -270,6 +276,7 @@ def check_exon_overlap(chrom, start, end, exon_annotations):
             return True
 
     return False
+
 
 def find_overlapping_genes(chrom, start, end, gene_annotations):
     """Find genes that overlap with the structural variant."""
@@ -304,10 +311,11 @@ def find_overlapping_genes(chrom, start, end, gene_annotations):
 
     return overlapping_genes
 
+
 def parse_vcf_header(vcf_file):
     """Parse VCF header to extract sample names."""
     sample_names = []
-    with open(vcf_file, 'r') as f:
+    with open(vcf_file) as f:
         for line in f:
             if line.startswith('#CHROM'):
                 fields = line.strip().split('\t')
@@ -316,6 +324,7 @@ def parse_vcf_header(vcf_file):
                     sample_names = fields[9:]
                 break
     return sample_names
+
 
 def parse_vcf_line(line, sample_names, target_sample_id=None):
     """Parse a VCF line and extract structural variant information.
@@ -369,7 +378,7 @@ def parse_vcf_line(line, sample_names, target_sample_id=None):
                 if genotype in ['0/0', '0|0', './.', '.|.']:
                     return None  # This sample doesn't have the variant
         except (ValueError, IndexError) as e:
-            print(f"Warning: Could not find sample {target_sample_id} in VCF: {e}")
+            print(f'Warning: Could not find sample {target_sample_id} in VCF: {e}')
             return None
     elif len(sample_data_fields) > 0:
         # No target sample specified, use first sample's genotype
@@ -388,28 +397,29 @@ def parse_vcf_line(line, sample_names, target_sample_id=None):
         'svtype': info_dict.get('SVTYPE', ''),
         'svlen': int(info_dict.get('SVLEN', 0)) if info_dict.get('SVLEN', '').lstrip('-').isdigit() else 0,
         'end': int(info_dict.get('END', pos)) if info_dict.get('END', '').isdigit() else int(pos),
-        'genotype': genotype
+        'genotype': genotype,
     }
 
     return variant
+
 
 def create_talos_variant_with_phenotype(sv_variant, sample_id, overlapping_genes, phenotype_match_details):
     """Convert structural variant to Talos format with phenotype matching information."""
 
     # Determine variant type
-    consequence = "structural_variant"
+    consequence = 'structural_variant'
     if sv_variant['svtype'] == 'CNV':
-        consequence = "copy_number_loss" if sv_variant['svlen'] < 0 else "copy_number_gain"
+        consequence = 'copy_number_loss' if sv_variant['svlen'] < 0 else 'copy_number_gain'
     elif sv_variant['svtype'] == 'DEL':
-        consequence = "copy_number_loss"
+        consequence = 'copy_number_loss'
     elif sv_variant['svtype'] == 'DUP':
-        consequence = "copy_number_gain"
+        consequence = 'copy_number_gain'
 
     # Extract gene information
-    gene_id = "unknown"
-    gene_name = "unknown"
-    transcript = "unknown"
-    biotype = "unknown"
+    gene_id = 'unknown'
+    gene_name = 'unknown'
+    transcript = 'unknown'
+    biotype = 'unknown'
 
     if overlapping_genes:
         # Prioritize protein-coding genes with highest overlap
@@ -432,30 +442,28 @@ def create_talos_variant_with_phenotype(sv_variant, sample_id, overlapping_genes
         biotype = primary_gene['biotype']
 
         if len(overlapping_genes) > 1:
-            gene_name = f"{gene_name} (+{len(overlapping_genes)-1} more)"
+            gene_name = f'{gene_name} (+{len(overlapping_genes) - 1} more)'
 
         overlap_pct = primary_gene.get('gene_overlap_percentage', 0)
-        transcript = f"{primary_gene['gene_name']}_transcript (affects {overlap_pct:.1f}% of gene)"
+        transcript = f'{primary_gene["gene_name"]}_transcript (affects {overlap_pct:.1f}% of gene)'
 
     # Build support categories as list
-    support_categories = ["Structural Variant", "SVDB", "High Impact"]
+    support_categories = ['Structural Variant', 'SVDB', 'High Impact']
 
     # Add phenotype match category if there are matches
     if phenotype_match_details['total_overlaps'] > 0:
-        support_categories.append("Phenotype Match")
+        support_categories.append('Phenotype Match')
 
     # Create categories dict (for Talos format) - map each category to today's date
-    today = datetime.now().strftime("%Y-%m-%d")
-    categories_dict = {cat: today for cat in support_categories}
+    today = datetime.now().strftime('%Y-%m-%d')
+    categories_dict = dict.fromkeys(support_categories, today)
 
     # Calculate phenotype match score
     # Note: phenotype_labels will be set by HPOFlagging module later in the pipeline
     phenotype_match_score = 0.0
     if phenotype_match_details['genes_with_matches']:
         # Use the highest match percentage among all overlapping genes
-        phenotype_match_score = max(
-            g['match_percentage'] for g in phenotype_match_details['genes_with_matches']
-        )
+        phenotype_match_score = max(g['match_percentage'] for g in phenotype_match_details['genes_with_matches'])
 
     # Determine correct ALT allele
     # For DRAGEN CNV calls, convert to DEL/DUP based on SVLEN sign
@@ -466,78 +474,99 @@ def create_talos_variant_with_phenotype(sv_variant, sample_id, overlapping_genes
         alt_allele = sv_variant['alt']
 
     talos_variant = {
-        "sample": sample_id,
-        "gene": gene_id,  # Top-level gene field for HTML display
-        "var_data": {
-            "coordinates": {
-                "chrom": sv_variant['chrom'],
-                "pos": sv_variant['pos'],
-                "ref": f"{sv_variant['end']}",  # Show end position in ref field (HTML will show pos-ref)
-                "alt": alt_allele  # Use corrected ALT allele (DEL/DUP for CNVs)
+        'sample': sample_id,
+        'gene': gene_id,  # Top-level gene field for HTML display
+        'var_data': {
+            'coordinates': {
+                'chrom': sv_variant['chrom'],
+                'pos': sv_variant['pos'],
+                'ref': f'{sv_variant["end"]}',  # Show end position in ref field (HTML will show pos-ref)
+                'alt': alt_allele,  # Use corrected ALT allele (DEL/DUP for CNVs)
             },
-            "genotype": sv_variant['genotype'],  # Add genotype field to var_data
-            "info": {
-                "ac": 1 if sv_variant['genotype'] in ['0/1', '1/0', '1/1'] else 0,
-                "af": 0.5 if sv_variant['genotype'] in ['0/1', '1/0'] else (1.0 if sv_variant['genotype'] == '1/1' else 0.0),
-                "an": 2,
-                "gene_id": gene_id,
-                "gene_symbol": gene_name,
-                "var_link": f"{sv_variant['chrom']}-{sv_variant['pos']}-{sv_variant['ref']}-{sv_variant['alt']}",
-                "svlen": sv_variant['svlen'],
-                "svtype": sv_variant['svtype'],
-                "end_pos": sv_variant['end'],
-                "genotype": sv_variant['genotype'],  # Also add to info dict for consistency
+            'genotype': sv_variant['genotype'],  # Add genotype field to var_data
+            'info': {
+                'ac': 1 if sv_variant['genotype'] in ['0/1', '1/0', '1/1'] else 0,
+                'af': 0.5
+                if sv_variant['genotype'] in ['0/1', '1/0']
+                else (1.0 if sv_variant['genotype'] == '1/1' else 0.0),
+                'an': 2,
+                'gene_id': gene_id,
+                'gene_symbol': gene_name,
+                'var_link': f'{sv_variant["chrom"]}-{sv_variant["pos"]}-{sv_variant["ref"]}-{sv_variant["alt"]}',
+                'svlen': sv_variant['svlen'],
+                'svtype': sv_variant['svtype'],
+                'end_pos': sv_variant['end'],
+                'genotype': sv_variant['genotype'],  # Also add to info dict for consistency
                 # Phenotype matching fields
-                "phenotype_match": len(phenotype_match_details['matching_hpo_terms']) > 0,
-                "phenotype_match_score": phenotype_match_score,
-                "phenotype_matched_genes": [g['gene'] for g in phenotype_match_details['genes_with_matches']],
-                "phenotype_matching_terms": list(phenotype_match_details['matching_hpo_terms']),
-                "categorybooleanphenomatch": len(phenotype_match_details['matching_hpo_terms']) > 0,
+                'phenotype_match': len(phenotype_match_details['matching_hpo_terms']) > 0,
+                'phenotype_match_score': phenotype_match_score,
+                'phenotype_matched_genes': [g['gene'] for g in phenotype_match_details['genes_with_matches']],
+                'phenotype_matching_terms': list(phenotype_match_details['matching_hpo_terms']),
+                'categorybooleanphenomatch': len(phenotype_match_details['matching_hpo_terms']) > 0,
                 # Standard fields
-                "categorybooleanhighimpact": True,
-                "categorybooleansvdb": True,
-                "gnomad_af": 0.0,
+                'categorybooleanhighimpact': True,
+                'categorybooleansvdb': True,
+                'gnomad_af': 0.0,
             },
-            "support_categories": support_categories,
-            "transcript_consequences": [
+            'support_categories': support_categories,
+            'transcript_consequences': [
                 {
-                    "consequence": consequence,
-                    "gene_id": gene_id,
-                    "gene": gene_name,
-                    "transcript": transcript,
-                    "mane_id": "",
-                    "mane": "",
-                    "biotype": biotype,
-                    "dna_change": f"{sv_variant['chrom']}:{sv_variant['pos']}-{sv_variant['end']}({sv_variant['svtype']},{abs(sv_variant['svlen'])}bp)",
-                    "amino_acid_change": "",
-                    "codon": ""
+                    'consequence': consequence,
+                    'gene_id': gene_id,
+                    'gene': gene_name,
+                    'transcript': transcript,
+                    'mane_id': '',
+                    'mane': '',
+                    'biotype': biotype,
+                    'dna_change': (
+                        f'{sv_variant["chrom"]}:{sv_variant["pos"]}-{sv_variant["end"]}'
+                        f'({sv_variant["svtype"]},{abs(sv_variant["svlen"])}bp)'
+                    ),
+                    'amino_acid_change': '',
+                    'codon': '',
                 }
             ],
-            "dna_change": f"{sv_variant['chrom']}:{sv_variant['pos']}-{sv_variant['end']}({sv_variant['svtype']},{abs(sv_variant['svlen'])}bp)",
-            "gene_symbol": gene_name,
-            "transcript": transcript
+            'dna_change': (
+                f'{sv_variant["chrom"]}:{sv_variant["pos"]}-{sv_variant["end"]}'
+                f'({sv_variant["svtype"]},{abs(sv_variant["svlen"])}bp)'
+            ),
+            'gene_symbol': gene_name,
+            'transcript': transcript,
         },
-        "phenotypes": [],  # Will be filled by HPOFlagging module
-        "date_of_phenotype_match": None,  # Will be set by HPOFlagging if there's a match
-        "categories": categories_dict,
-        "first_tagged": today,
-        "labels": [],
-        "reasons": f"Structural variant with {len(overlapping_genes)} overlapping gene(s), {phenotype_match_details['total_overlaps']} HPO term matches",
-        "support_vars": [],
-        "found_in_current_run": True,
-        "panels": {
-            "forced": {},
-            "matched": {}
-        },
-        "phenotype_labels": []
+        'phenotypes': [],  # Will be filled by HPOFlagging module
+        'date_of_phenotype_match': None,  # Will be set by HPOFlagging if there's a match
+        'categories': categories_dict,
+        'first_tagged': today,
+        'labels': [],
+        'reasons': (
+            f'Structural variant with {len(overlapping_genes)} overlapping gene(s), '
+            f'{phenotype_match_details["total_overlaps"]} HPO term matches'
+        ),
+        'support_vars': [],
+        'found_in_current_run': True,
+        'panels': {'forced': {}, 'matched': {}},
+        'phenotype_labels': [],
     }
 
     return talos_variant
 
-def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, gen2phen_file,
-         phenotype_filter_only=None, min_phenotype_score=None, require_gene_overlap=None,
-         sv_types=None, pass_only=None, min_size=None, require_exon_overlap=None,
-         config_path=None):
+
+def main(
+    vcf_file,
+    input_json_file,
+    output_json_file,
+    sample_id,
+    pedigree_file,
+    gen2phen_file,
+    phenotype_filter_only=None,
+    min_phenotype_score=None,
+    require_gene_overlap=None,
+    sv_types=None,
+    pass_only=None,
+    min_size=None,
+    require_exon_overlap=None,
+    config_path=None,
+):
     """
     Merge structural variants with gene annotation and phenotype matching.
 
@@ -558,35 +587,43 @@ def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, 
         config_path: Path to config.toml file (defaults to TALOS_CONFIG env or inputs/config.toml)
     """
 
-    print("\n=== Starting SV Merge with Phenotype Matching ===\n")
+    print('\n=== Starting SV Merge with Phenotype Matching ===\n')
 
     # Load configuration from TOML file
     sv_config = load_sv_filter_config(config_path)
 
     # Use command-line arguments if provided, otherwise use config values
-    require_gene_overlap = require_gene_overlap if require_gene_overlap is not None else sv_config.get('require_gene_overlap', False)
-    require_exon_overlap = require_exon_overlap if require_exon_overlap is not None else sv_config.get('require_exon_overlap', False)
-    phenotype_filter_only = phenotype_filter_only if phenotype_filter_only is not None else sv_config.get('require_phenotype_match', False)
-    min_phenotype_score = min_phenotype_score if min_phenotype_score is not None else sv_config.get('min_phenotype_score', 0.0)
+    require_gene_overlap = (
+        require_gene_overlap if require_gene_overlap is not None else sv_config.get('require_gene_overlap', False)
+    )
+    require_exon_overlap = (
+        require_exon_overlap if require_exon_overlap is not None else sv_config.get('require_exon_overlap', False)
+    )
+    phenotype_filter_only = (
+        phenotype_filter_only if phenotype_filter_only is not None else sv_config.get('require_phenotype_match', False)
+    )
+    min_phenotype_score = (
+        min_phenotype_score if min_phenotype_score is not None else sv_config.get('min_phenotype_score', 0.0)
+    )
     sv_types = sv_types if sv_types is not None else sv_config.get('allowed_sv_types', None)
     pass_only = pass_only if pass_only is not None else sv_config.get('require_pass_only', False)
     min_size = min_size if min_size is not None else sv_config.get('min_sv_size', 0)
     max_size = sv_config.get('max_sv_size', 0)
 
-    print("\n=== Applied Filtering Parameters ===")
-    print(f"  Gene overlap required: {require_gene_overlap}")
-    print(f"  Exon overlap required: {require_exon_overlap}")
-    print(f"  Phenotype match required: {phenotype_filter_only}")
-    print(f"  Min phenotype score: {min_phenotype_score}%")
-    print(f"  Allowed SV types: {sv_types if sv_types else 'All'}")
-    print(f"  PASS filter only: {pass_only}")
-    print(f"  Min SV size: {min_size}bp")
+    print('\n=== Applied Filtering Parameters ===')
+    print(f'  Gene overlap required: {require_gene_overlap}')
+    print(f'  Exon overlap required: {require_exon_overlap}')
+    print(f'  Phenotype match required: {phenotype_filter_only}')
+    print(f'  Min phenotype score: {min_phenotype_score}%')
+    print(f'  Allowed SV types: {sv_types if sv_types else "All"}')
+    print(f'  PASS filter only: {pass_only}')
+    print(f'  Min SV size: {min_size}bp')
     if max_size > 0:
-        print(f"  Max SV size: {max_size}bp")
+        print(f'  Max SV size: {max_size}bp')
     print()
 
     # Load resources
-    print("Loading annotation resources...")
+    print('Loading annotation resources...')
     gene_annotations = load_gene_annotations()
 
     # Load exon annotations if required
@@ -598,32 +635,32 @@ def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, 
     patient_hpo = load_patient_hpo_terms(pedigree_file, sample_id)
 
     if not patient_hpo:
-        print("WARNING: No patient HPO terms found. Phenotype matching will not be performed.")
+        print('WARNING: No patient HPO terms found. Phenotype matching will not be performed.')
 
     # Load existing JSON
-    with open(input_json_file, 'r') as f:
+    with open(input_json_file) as f:
         talos_data = json.load(f)
 
     # Parse VCF header to get sample names
-    print(f"\nParsing VCF header...")
+    print('\nParsing VCF header...')
     sample_names = parse_vcf_header(vcf_file)
     if sample_names:
-        print(f"Found {len(sample_names)} samples in VCF: {', '.join(sample_names)}")
+        print(f'Found {len(sample_names)} samples in VCF: {", ".join(sample_names)}')
         if sample_id not in sample_names:
             print(f"WARNING: Target sample '{sample_id}' not found in VCF header!")
     else:
-        print("WARNING: Could not parse sample names from VCF header")
+        print('WARNING: Could not parse sample names from VCF header')
 
     # Parse VCF and filter for target sample
-    print(f"\nParsing structural variants from VCF for sample {sample_id}...")
+    print(f'\nParsing structural variants from VCF for sample {sample_id}...')
     all_svs = []
-    with open(vcf_file, 'r') as f:
+    with open(vcf_file) as f:
         for line in f:
             sv = parse_vcf_line(line, sample_names, target_sample_id=sample_id)
             if sv:
                 all_svs.append(sv)
 
-    print(f"Found {len(all_svs)} structural variants for sample {sample_id}")
+    print(f'Found {len(all_svs)} structural variants for sample {sample_id}')
 
     # Process each SV
     annotated_svs = []
@@ -656,17 +693,13 @@ def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, 
 
         # Apply exon overlap filter
         if require_exon_overlap:
-            has_exon_overlap = check_exon_overlap(
-                sv['chrom'], sv['pos'], sv['end'], exon_annotations
-            )
+            has_exon_overlap = check_exon_overlap(sv['chrom'], sv['pos'], sv['end'], exon_annotations)
             if not has_exon_overlap:
                 filtered_no_exon += 1
                 continue
 
         # Find overlapping genes
-        overlapping_genes = find_overlapping_genes(
-            sv['chrom'], sv['pos'], sv['end'], gene_annotations
-        )
+        overlapping_genes = find_overlapping_genes(sv['chrom'], sv['pos'], sv['end'], gene_annotations)
 
         # Apply gene overlap filter
         if require_gene_overlap and not overlapping_genes:
@@ -675,9 +708,7 @@ def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, 
 
         # Perform phenotype matching
         gene_symbols = [g['gene_name'] for g in overlapping_genes]
-        matched_genes, match_details = calculate_phenotype_match(
-            gene_symbols, patient_hpo, gene_to_hpo
-        )
+        matched_genes, match_details = calculate_phenotype_match(gene_symbols, patient_hpo, gene_to_hpo)
 
         # Calculate phenotype match score
         phenotype_score = 0.0
@@ -696,102 +727,121 @@ def main(vcf_file, input_json_file, output_json_file, sample_id, pedigree_file, 
             phenotype_matched_count += 1
 
         # Create Talos variant with phenotype information
-        talos_variant = create_talos_variant_with_phenotype(
-            sv, sample_id, overlapping_genes, match_details
-        )
+        talos_variant = create_talos_variant_with_phenotype(sv, sample_id, overlapping_genes, match_details)
 
         annotated_svs.append(talos_variant)
 
-    print(f"\nProcessed {len(all_svs)} structural variants:")
-    print(f"  - {len(annotated_svs)} passed filtering")
-    print(f"  - {phenotype_matched_count} with phenotype matches")
+    print(f'\nProcessed {len(all_svs)} structural variants:')
+    print(f'  - {len(annotated_svs)} passed filtering')
+    print(f'  - {phenotype_matched_count} with phenotype matches')
     if filtered_sv_type > 0:
-        print(f"  - {filtered_sv_type} filtered out (SV type)")
+        print(f'  - {filtered_sv_type} filtered out (SV type)')
     if filtered_quality > 0:
-        print(f"  - {filtered_quality} filtered out (quality/FILTER)")
+        print(f'  - {filtered_quality} filtered out (quality/FILTER)')
     if filtered_size > 0:
-        print(f"  - {filtered_size} filtered out (size < {min_size}bp)")
+        print(f'  - {filtered_size} filtered out (size < {min_size}bp)')
     if require_exon_overlap:
-        print(f"  - {filtered_no_exon} filtered out (no exon overlap)")
+        print(f'  - {filtered_no_exon} filtered out (no exon overlap)')
     if require_gene_overlap:
-        print(f"  - {filtered_no_gene} filtered out (no gene overlap)")
+        print(f'  - {filtered_no_gene} filtered out (no gene overlap)')
 
     # Add to JSON
     if sample_id in talos_data['results']:
         existing_variants = talos_data['results'][sample_id]['variants']
         existing_variants.extend(annotated_svs)
 
-        print(f"\nAdded {len(annotated_svs)} structural variants to sample {sample_id}")
-        print(f"Total variants for {sample_id}: {len(existing_variants)}")
+        print(f'\nAdded {len(annotated_svs)} structural variants to sample {sample_id}')
+        print(f'Total variants for {sample_id}: {len(existing_variants)}')
 
         # Update metadata
         if 'metadata' in talos_data['results'][sample_id]:
             talos_data['results'][sample_id]['metadata']['present_in_sv'] = True
     else:
-        print(f"ERROR: Sample {sample_id} not found in JSON results")
+        print(f'ERROR: Sample {sample_id} not found in JSON results')
         return 1
 
     # Write output
     with open(output_json_file, 'w') as f:
         json.dump(talos_data, f, indent=2)
 
-    print(f"\n=== Merged results written to {output_json_file} ===\n")
+    print(f'\n=== Merged results written to {output_json_file} ===\n')
 
     # Print summary of phenotype-matched SVs
     if phenotype_matched_count > 0:
-        print(f"\nPhenotype-matched structural variants ({phenotype_matched_count}):")
+        print(f'\nPhenotype-matched structural variants ({phenotype_matched_count}):')
         for var in annotated_svs:
             if var['var_data']['info'].get('phenotype_match'):
                 coords = var['var_data']['coordinates']
                 info = var['var_data']['info']
-                print(f"  {coords['chrom']}:{coords['pos']}-{info['end_pos']} ({info['svtype']}, {abs(info['svlen'])}bp)")
-                print(f"    Gene: {info.get('gene_symbol', 'unknown')}")
-                print(f"    Matched genes: {', '.join(info.get('phenotype_matched_genes', []))}")
-                print(f"    HPO matches: {', '.join(info.get('phenotype_matching_terms', []))}")
-                print(f"    Match score: {info.get('phenotype_match_score', 0):.1f}%")
+                print(
+                    f'  {coords["chrom"]}:{coords["pos"]}-{info["end_pos"]} ({info["svtype"]}, {abs(info["svlen"])}bp)'
+                )
+                print(f'    Gene: {info.get("gene_symbol", "unknown")}')
+                print(f'    Matched genes: {", ".join(info.get("phenotype_matched_genes", []))}')
+                print(f'    HPO matches: {", ".join(info.get("phenotype_matching_terms", []))}')
+                print(f'    Match score: {info.get("phenotype_match_score", 0):.1f}%')
 
     return 0
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Merge structural variants with gene annotation and phenotype matching",
-        epilog="Note: All filter options can be configured in config.toml [StructuralVariantFiltering] section. "
-               "Command-line arguments override config file settings."
+        description='Merge structural variants with gene annotation and phenotype matching',
+        epilog='Note: All filter options can be configured in config.toml [StructuralVariantFiltering] section. '
+        'Command-line arguments override config file settings.',
     )
-    parser.add_argument("vcf_file", help="Path to structural variants VCF file")
-    parser.add_argument("input_json", help="Path to input Talos JSON results")
-    parser.add_argument("output_json", help="Path to output JSON file")
-    parser.add_argument("sample_id", help="Sample ID to process")
-    parser.add_argument("--pedigree", required=True, help="Path to pedigree file with HPO terms")
-    parser.add_argument("--gen2phen", required=True, help="Path to genes_to_phenotype.txt file")
-    parser.add_argument("--config", dest="config_path", help="Path to config.toml file (default: $TALOS_CONFIG or inputs/config.toml)")
+    parser.add_argument('vcf_file', help='Path to structural variants VCF file')
+    parser.add_argument('input_json', help='Path to input Talos JSON results')
+    parser.add_argument('output_json', help='Path to output JSON file')
+    parser.add_argument('sample_id', help='Sample ID to process')
+    parser.add_argument('--pedigree', required=True, help='Path to pedigree file with HPO terms')
+    parser.add_argument('--gen2phen', required=True, help='Path to genes_to_phenotype.txt file')
+    parser.add_argument(
+        '--config', dest='config_path', help='Path to config.toml file (default: $TALOS_CONFIG or inputs/config.toml)'
+    )
 
     # Optional overrides (if not provided, uses config.toml settings)
-    parser.add_argument("--phenotype-only", action="store_true", default=None, help="Override: Only include SVs with phenotype matches")
-    parser.add_argument("--min-score", type=float, default=None, help="Override: Minimum phenotype match score (0-100)")
-    parser.add_argument("--require-gene-overlap", action="store_true", default=None, help="Override: Only include SVs that overlap at least one gene")
-    parser.add_argument("--require-exon-overlap", action="store_true", default=None, help="Override: Only include SVs that overlap at least one exon")
-    parser.add_argument("--sv-types", nargs='+', default=None, help="Override: SV types to include (e.g., DEL CNV)")
-    parser.add_argument("--pass-only", action="store_true", default=None, help="Override: Only include SVs with FILTER=PASS")
-    parser.add_argument("--min-size", type=int, default=None, help="Override: Minimum SV size in bp")
+    parser.add_argument(
+        '--phenotype-only', action='store_true', default=None, help='Override: Only include SVs with phenotype matches'
+    )
+    parser.add_argument('--min-score', type=float, default=None, help='Override: Minimum phenotype match score (0-100)')
+    parser.add_argument(
+        '--require-gene-overlap',
+        action='store_true',
+        default=None,
+        help='Override: Only include SVs that overlap at least one gene',
+    )
+    parser.add_argument(
+        '--require-exon-overlap',
+        action='store_true',
+        default=None,
+        help='Override: Only include SVs that overlap at least one exon',
+    )
+    parser.add_argument('--sv-types', nargs='+', default=None, help='Override: SV types to include (e.g., DEL CNV)')
+    parser.add_argument(
+        '--pass-only', action='store_true', default=None, help='Override: Only include SVs with FILTER=PASS'
+    )
+    parser.add_argument('--min-size', type=int, default=None, help='Override: Minimum SV size in bp')
 
     args = parser.parse_args()
 
-    sys.exit(main(
-        args.vcf_file,
-        args.input_json,
-        args.output_json,
-        args.sample_id,
-        args.pedigree,
-        args.gen2phen,
-        args.phenotype_only,
-        args.min_score,
-        args.require_gene_overlap,
-        args.sv_types,
-        args.pass_only,
-        args.min_size,
-        args.require_exon_overlap,
-        args.config_path
-    ))
+    sys.exit(
+        main(
+            args.vcf_file,
+            args.input_json,
+            args.output_json,
+            args.sample_id,
+            args.pedigree,
+            args.gen2phen,
+            args.phenotype_only,
+            args.min_score,
+            args.require_gene_overlap,
+            args.sv_types,
+            args.pass_only,
+            args.min_size,
+            args.require_exon_overlap,
+            args.config_path,
+        )
+    )
