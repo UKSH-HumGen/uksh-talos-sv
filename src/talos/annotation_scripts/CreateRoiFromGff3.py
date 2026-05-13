@@ -111,9 +111,9 @@ def merge_output(
     """
     Take each line, resolve overlapping regions, and write out to a new file.
     """
-    contig = None
-    start = None
-    end = None
+    contig: str | None = None
+    start: int | None = None
+    end: int | None = None
     with open(output, 'w') as handle:
         for this_chrom, this_start, this_end in unmerged_lines:
             if contig is None:
@@ -131,6 +131,7 @@ def merge_output(
                 continue
 
             # adjacent blocks close enough, merge them, but don't write
+            assert end is not None  # guaranteed by the `contig is None` guard above
             if this_start - end < flanking:
                 end = max(end, this_end)
 

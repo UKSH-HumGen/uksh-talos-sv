@@ -65,7 +65,7 @@ def parse_gff3_genes(gff3_path: str) -> dict[str, list[Gene]]:
             if len(fields) < 9:
                 continue
 
-            chrom, source, feature_type, start, end, score, strand, phase, attributes = fields
+            chrom, _source, feature_type, start, end, _score, _strand, _phase, attributes = fields
 
             # Parse attributes into dict
             attr_dict = {}
@@ -112,7 +112,7 @@ def parse_gff3_genes(gff3_path: str) -> dict[str, list[Gene]]:
             if len(fields) < 9:
                 continue
 
-            chrom, source, feature_type, start, end, score, strand, phase, attributes = fields
+            chrom, _source, feature_type, start, end, _score, _strand, _phase, attributes = fields
 
             # Parse attributes
             attr_dict = {}
@@ -124,10 +124,10 @@ def parse_gff3_genes(gff3_path: str) -> dict[str, list[Gene]]:
             # Process exons
             if feature_type == 'exon':
                 parent = attr_dict.get('Parent', '').replace('transcript:', '')
-                gene_id = transcript_to_gene.get(parent)
+                exon_gene_id = transcript_to_gene.get(parent)
 
-                if gene_id and gene_id in gene_dict:
-                    gene_dict[gene_id].exons.append((int(start), int(end)))
+                if exon_gene_id and exon_gene_id in gene_dict:
+                    gene_dict[exon_gene_id].exons.append((int(start), int(end)))
 
     total_genes = sum(len(genes) for genes in genes_by_chr.values())
     total_exons = sum(len(gene.exons) for gene in gene_dict.values())

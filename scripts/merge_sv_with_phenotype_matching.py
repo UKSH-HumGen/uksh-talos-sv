@@ -168,7 +168,7 @@ def load_gene_annotations(gff_file=None):
                 if len(fields) < 9:
                     continue
 
-                chrom, source, feature, start, end, score, strand, phase, attributes = fields
+                chrom, _source, feature, start, end, _score, strand, _phase, attributes = fields
 
                 if feature != 'gene':
                     continue
@@ -240,7 +240,7 @@ def load_exon_annotations():
                 if len(fields) < 9:
                     continue
 
-                chrom, source, feature_type, start, end, score, strand, phase, attributes = fields
+                chrom, _source, feature_type, start, end, _score, strand, _phase, _attributes = fields
 
                 # Only process exon features
                 if feature_type != 'exon':

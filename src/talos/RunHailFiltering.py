@@ -727,7 +727,7 @@ def csq_struct_to_string(tx_expr: hl.expr.StructExpression) -> hl.expr.ArrayExpr
 
     csq = hl.empty_array(hl.tstr)
     csq = csq.extend(
-        hl.or_else(tx_expr.map(lambda x: get_csq_from_struct(x)), hl.empty_array(hl.tstr)),
+        hl.or_else(tx_expr.map(get_csq_from_struct), hl.empty_array(hl.tstr)),
     )
 
     # previous consequence filters may make this caution unnecessary
