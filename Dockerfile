@@ -61,17 +61,13 @@ ENV UV_LINK_MODE=copy
 
 WORKDIR /talos
 
-# Install the project's dependencies using the lockfile and settings
-# NOTE: the upstream uv.lock still contains cpg-utils as a runtime dep — this
-# is harmless: in the UKSH fork cpg-utils is the only thing in the [cpg]
-# extra, and the lockfile is just used to pin transitive versions.
+# Install the project's dependencies using pyproject.toml (no lockfile in this fork).
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --no-install-project --no-dev
 
 # Add in the additional requirements that are most likely to change.
-COPY LICENSE pyproject.toml uv.lock README.md .
+COPY LICENSE pyproject.toml README.md .
 COPY src src/
 # Install the package WITHOUT the optional [cpg] extra by default. Users who
 # need cpg-utils for Google-Cloud Hail/Batch should rebuild with
