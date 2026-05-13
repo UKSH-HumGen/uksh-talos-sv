@@ -135,13 +135,12 @@ uksh-talos-sv/
 ├── experimental/             — not integrated; see experimental/README.md
 ├── docs/                     — SV modifications and known issues
 ├── test/                     — pytest test suite
-└── pyproject.toml, Dockerfile, CITATION.cff
+└── pyproject.toml, Dockerfile
 ```
 
 ## Citing this fork
 
-Until the preprint is published, please cite both the upstream tool and
-this fork. A machine-readable `CITATION.cff` is in the repository root.
+Please cite both the upstream tool and this fork:
 
 ```bibtex
 @software{uksh_talos_sv_2026,
@@ -149,36 +148,14 @@ this fork. A machine-readable `CITATION.cff` is in the repository root.
   title        = {uksh-talos-sv: Talos with structural variant support},
   version      = {1.0.0-uksh},
   year         = {2026},
-  publisher    = {Zenodo},
-  doi          = {10.XXXX/PLACEHOLDER-PREPRINT-DOI},
   url          = {https://github.com/UKSH-HumGen/uksh-talos-sv}
 }
 ```
-
-> **TODO Daniel:** replace `10.XXXX/PLACEHOLDER-PREPRINT-DOI` with the
-> real DOI once the Zenodo release and the medRxiv preprint are live.
-> The same placeholder appears in `CITATION.cff` — update both.
 
 Please also cite the upstream tool:
 
 > Centre for Population Genomics. **Talos**.
 > https://github.com/populationgenomics/talos
-
-### Generating a Zenodo DOI
-
-Zenodo issues a citable DOI for each tagged GitHub release. Setup is a
-one-time, ~5-minute job; afterwards every release auto-archives.
-
-1. Sign in to Zenodo with the same GitHub account that owns the
-   repository, then visit your Zenodo **GitHub** settings page and
-   flip the toggle for `UKSH-HumGen/uksh-talos-sv` to **ON**.
-2. In GitHub, create a release tagged `v1.0.0-uksh` (release title can
-   match). Zenodo picks up the webhook automatically.
-3. Wait a minute, then open the Zenodo deposit Zenodo created. Note the
-   DOI it minted (looks like `10.5281/zenodo.XXXXXXX`).
-4. Replace `10.XXXX/PLACEHOLDER-PREPRINT-DOI` in `CITATION.cff` and in
-   the BibTeX block above with that real DOI. Commit and push.
-5. Optional: add the Zenodo "DOI" badge to the top of this README.
 
 ## Acknowledgements
 
