@@ -16,3 +16,9 @@ jobs:
           summary: true
           ignore-vulns: |
             GHSA-8qvm-5x2c-j2w7  # Denial of service in protobuf=3.20.2; hail pins this version.
+            CVE-2026-0994  # DoS via nested google.protobuf.Any in ParseDict(); transitive dep of hail==0.2.134.
+                           # Not exploitable: pipeline parses no untrusted protobuf input from external sources.
+                           # Upgrading protobuf to 5.x/6.x would break hail 0.2.134 compatibility.
+            CVE-2026-21883  # Cross-Site WebSocket Hijacking (CSWSH) in Bokeh server; transitive dep of hail==0.2.134.
+                            # Not exploitable: no Bokeh server is deployed. Bokeh is used solely for
+                            # static plot generation within hail. This is a research pipeline, not a web service.
