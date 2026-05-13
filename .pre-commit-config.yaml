@@ -25,7 +25,7 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy
-        args: [--pretty, --show-error-codes]
+        args: [--pretty, --show-error-codes, --cache-dir=/tmp/mypy_cache]
         additional_dependencies:
           - types-python-dateutil
           - types-toml

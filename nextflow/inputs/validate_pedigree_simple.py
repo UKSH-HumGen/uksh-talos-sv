@@ -18,7 +18,7 @@ pedigree_file = sys.argv[1]
 
 errors = []
 warnings = []
-families = {}
+families: dict[str, list[dict[str, str | None]]] = {}
 all_samples = set()
 probands = []
 
@@ -126,7 +126,7 @@ print(f'Affected (probands): {len(probands)}')
 print(f'Unaffected:          {len(all_samples) - len(probands)}')
 
 print('\nFamily size distribution:')
-family_sizes = {}
+family_sizes: dict[int, int] = {}
 for family_id, members in families.items():
     size = len(members)
     family_sizes[size] = family_sizes.get(size, 0) + 1
